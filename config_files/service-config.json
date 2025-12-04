@@ -1,0 +1,59 @@
+{
+  "name": "infinity service",
+  "prefork": false,
+  "serviceName": "infinity-service",
+  "env": "dev",
+  "host": "0.0.0.0",
+  "port": 8089,
+  "ownerInfo": {
+    "name": "regiewby",
+    "email": "regiewby@gmail.com",
+    "url": "www.github.com/regiewby"
+  },
+  "security": {
+    "secretKey": "is-this-secret-key?"
+  },
+  "database": {
+    "username": "root",
+    "password": "rootpass",
+    "host": "localhost",
+    "port": 3306,
+    "name": "infinity_service",
+    "pool": {
+      "idle": 10,
+      "max": 100,
+      "lifetime": 300
+    }
+  },
+  "redisConfig": {
+    "addr": "localhost:6379",
+    "idleTimeoutInSec": 60,
+    "poolSize": 500,
+    "readOnlyFromSlaves": false,
+    "readTimeoutInSec": 1,
+    "writeTimeoutInSec": 1,
+    "tlsEnabled": false
+  },
+  "statsd": {
+    "host": "localhost",
+    "port": 8125
+  },
+  "trace": {
+    "host": "localhost",
+    "port": 8126,
+    "disable": true
+  },
+  "logger": {
+    "workerCount": 10,
+    "bufferSize": 10000,
+    "logLevel": 2,
+    "stacktraceLevel": 4,
+    "logFormat": "cglsdebug"
+  },
+  "kafka": {
+    "bootstrap.servers": "localhost:9092",
+    "group.id": "infinity-service",
+    "auto.offset.reset": "earliest",
+    "producer.enabled": true
+  }
+}
