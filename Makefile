@@ -1,3 +1,4 @@
+
 .PHONY: ensure-mod lint install-tools test run-local
 
 install-tools:
@@ -19,7 +20,7 @@ test-cover:
 	go tool cover -func tmp/cover.out && go tool cover -html=tmp/cover.out -o tmp/cover.html
 
 run-local: ensure-mod
-	cd cmd/infinity-service && go run main.go
+	cd cmd/qms-engine && go run main.go
 
 ensure-mod:
 	go mod download
