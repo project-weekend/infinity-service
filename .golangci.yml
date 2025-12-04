@@ -1,0 +1,179 @@
+linters-settings:
+  dupl:
+    threshold: 100
+
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+
+  exhaustive:
+    default-signifies-exhaustive: false
+
+  funlen:
+    lines: 100
+    statements: 50
+
+  gocognit:
+    min-complexity: 15
+
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+
+  gocritic:
+    enabled-tags:
+      - diagnostic
+      - experimental
+      - opinionated
+      - performance
+      - style
+    disabled-checks:
+      - dupImport
+      - ifElseChain
+      - octalLiteral
+      - whyNoLint
+
+  gocyclo:
+    min-complexity: 15
+
+  gofmt:
+    simplify: true
+
+  goimports:
+    local-prefixes: github.com/infinity/infinity-service
+
+  mnd:
+    checks:
+      - argument
+      - case
+      - condition
+      - operation
+      - return
+    ignored-numbers:
+      - "0"
+      - "1"
+      - "2"
+      - "3"
+    ignored-functions:
+      - "strings.SplitN"
+
+  govet:
+    enable-all: true
+    disable:
+      - fieldalignment
+      - shadow
+
+  lll:
+    line-length: 140
+
+  misspell:
+    locale: US
+
+  nakedret:
+    max-func-lines: 30
+
+  nestif:
+    min-complexity: 4
+
+  nolintlint:
+    allow-unused: false
+    allow-no-explanation: []
+    require-explanation: true
+    require-specific: true
+
+  revive:
+    rules:
+      - name: unexported-return
+        disabled: true
+      - name: unused-parameter
+        disabled: true
+
+  unparam:
+    check-exported: false
+
+  unused:
+    check-exported: false
+
+linters:
+  disable-all: true
+  enable:
+    - bodyclose
+    - dupl
+    - errcheck
+    - exportloopref
+    - funlen
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - mnd
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - nestif
+    - nolintlint
+    - revive
+    - staticcheck
+    - stylecheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+
+issues:
+  exclude-dirs:
+    - vendor
+    - bin
+    - tmp
+
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - mnd
+        - funlen
+        - gocognit
+        - goconst
+
+    - path: cmd/
+      linters:
+        - mnd
+
+    - path: internal/config/
+      linters:
+        - mnd
+
+    - linters:
+        - lll
+      source: "^//go:generate "
+
+    # Exclude typecheck errors (code compiles fine with go build)
+    - linters:
+        - typecheck
+      text: "^undefined:"
+
+  exclude-use-default: false
+  max-issues-per-linter: 50
+  max-same-issues: 3
+
+run:
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+  modules-download-mode: readonly
+  allow-parallel-runners: true
+  go: "1.24"
+
+output:
+  formats:
+    - format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+  sort-results: true
