@@ -24,7 +24,7 @@ func (u *UserServiceImpl) Create(ctx context.Context, request *model.CreateUserR
 
 	currentUserID := auth.ID
 	loggedInUser := new(entity.User)
-	if err := u.UserRepository.FindByUserId(tx, loggedInUser, currentUserID); err != nil {
+	if err := u.UserRepository.FindByID(tx, loggedInUser, currentUserID); err != nil {
 		u.Logger.WarnContext(ctx, "Failed find user by id", "err", err)
 		return nil, common.NewServiceError(common.ErrCode_InternalServerError, nil)
 	}

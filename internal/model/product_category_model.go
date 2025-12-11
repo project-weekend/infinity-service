@@ -12,6 +12,15 @@ type ProductCategoryResponse struct {
 }
 
 type CreateProductCategoryRequest struct {
-	Name        string `json:"name,omitempty"`
-	Description string `json:"description,omitempty"`
+	Name        string `json:"name" validate:"required,max=100"`
+	Description string `json:"description" validate:"required,max=250"`
+}
+
+type GetProductCategoryRequest struct {
+	ID string `json:"-" validate:"required"`
+}
+
+type DeleteProductCategoryRequest struct {
+	UserID string `json:"-" validate:"required,max=100"`
+	ID     string `json:"-" validate:"required"`
 }

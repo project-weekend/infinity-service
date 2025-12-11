@@ -20,6 +20,8 @@ func (r *RouteConfig) Setup() {
 func (r *RouteConfig) RegisterRoutes() {
 	// Public routes (no authentication required)
 	r.AppEngine.Post("/api/v1/user/login", r.UserHandler.Login)
+	r.AppEngine.Post("/api/v1/product-category/:id", r.ProductCategoryHandler.Get)
+	r.AppEngine.Delete("/api/v1/product-category/:id", r.ProductCategoryHandler.Delete)
 }
 
 func (r *RouteConfig) RegisterProtectedRoutes() {
@@ -32,4 +34,5 @@ func (r *RouteConfig) RegisterProtectedRoutes() {
 
 	protected.Post("/product-category", r.ProductCategoryHandler.Create)
 	protected.Get("/product-categories", r.ProductCategoryHandler.List)
+	//protected.DeleteByID("/product-category/:id", r.ProductCategoryHandler.Get)
 }
