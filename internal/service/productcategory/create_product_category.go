@@ -31,7 +31,7 @@ func (p *ProductCategoryServiceImpl) Create(ctx context.Context, request *model.
 		Description:  request.Description,
 	}
 
-	if err := p.ProductCategoryRepository.Save(ctx, tx, productCategory); err != nil {
+	if err := p.ProductCategoryRepository.Save(ctx, productCategory); err != nil {
 		return nil, err
 	}
 	if err := tx.Commit().Error; err != nil {

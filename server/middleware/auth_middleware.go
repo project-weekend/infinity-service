@@ -32,9 +32,21 @@ func NewAuth(userService *user.UserServiceImpl) fiber.Handler {
 
 		userService.Logger.DebugContext(ctx.UserContext(), "User :", "user", auth.ID)
 
-		// Use the AuthContextKey from the model package to ensure consistency
+		// Store in both context.Context (for passing to services) and fiber.Ctx.Locals (for easy access in handlers)
 		newCtx := context.WithValue(ctx.UserContext(), model.AuthContextKey, auth)
 		ctx.SetUserContext(newCtx)
+		ctx.Locals("auth", auth)
+
 		return ctx.Next()
 	}
+}
+
+// GetUser retrieves the authenticated user from Fiber context (Locals)
+func GetUser(ctx *fiber.Ctx) *model.Auth {
+	return ctx.Locals("auth").(*model.Auth)
+}
+
+// GetUserFromContext retrieves the authenticated user from standard context
+func GetUserFromContext(ctx context.Context) (*model.Auth, bool) {
+	return model.GetAuthFromContext(ctx)
 }

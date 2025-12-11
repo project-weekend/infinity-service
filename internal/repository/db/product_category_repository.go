@@ -23,8 +23,8 @@ func NewMySqlProductCategoryRepository(logger *slog.Logger, db *gorm.DB) *MySqlP
 	}
 }
 
-func (r *MySqlProductCategoryRepository) Save(ctx context.Context, db *gorm.DB, entity *entity.ProductCategory) error {
-	return db.WithContext(ctx).Save(entity).Error
+func (r *MySqlProductCategoryRepository) Save(ctx context.Context, entity *entity.ProductCategory) error {
+	return r.DB.WithContext(ctx).Save(entity).Error
 }
 
 func (r *MySqlProductCategoryRepository) CountByCategoryCode(ctx context.Context, categoryCode string) (int64, error) {
@@ -37,4 +37,14 @@ func (r *MySqlProductCategoryRepository) FindAll(ctx context.Context) ([]entity.
 	var categories []entity.ProductCategory
 	err := r.DB.WithContext(ctx).Find(&categories).Error
 	return categories, err
+}
+
+func (r *MySqlProductCategoryRepository) FindByID(ctx context.Context, id string) (*entity.ProductCategory, error) {
+	var category entity.ProductCategory
+	err := r.DB.WithContext(ctx).First(&category, "id = ?", id).Error
+	return &category, err
+}
+
+func (r *MySqlProductCategoryRepository) DeleteByID(ctx context.Context, id string) error {
+	return r.DB.WithContext(ctx).Where("id = ?", id).Delete(&entity.ProductCategory{}).Error
 }

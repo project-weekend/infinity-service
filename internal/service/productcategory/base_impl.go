@@ -13,6 +13,8 @@ type ProductCategoryServiceImpl struct {
 	Logger                    *slog.Logger
 	DB                        *gorm.DB
 	ProductCategoryRepository repository.ProductCategoryRepository
+	UserRepository            repository.UserRepository
+	RoleRepository            repository.RoleRepository
 }
 
 func NewProductCategoryService(cfg *config.Config, logger *slog.Logger, db *gorm.DB, productCategoryRepository repository.ProductCategoryRepository) *ProductCategoryServiceImpl {
