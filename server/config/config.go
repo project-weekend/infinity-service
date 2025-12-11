@@ -14,6 +14,7 @@ type Config struct {
 	Statsd      Statsd      `json:"statsd"`
 	Trace       Trace       `json:"trace"`
 	Logger      Logger      `json:"logger"`
+	Valkey      Valkey      `json:"valkey"`
 	Kafka       KafkaConfig `json:"kafka"`
 	Security    Security    `json:"security"`
 }
@@ -84,6 +85,23 @@ type KafkaConfig struct {
 	GroupID          string `json:"group.id"`
 	AutoOffsetReset  string `json:"auto.offset.reset"`
 	ProducerEnabled  bool   `json:"producer.enabled"`
+}
+
+// Valkey contains Valkey cache configuration
+type Valkey struct {
+	Enabled            bool   `json:"enabled"`
+	Host               string `json:"host"`
+	Port               int    `json:"port"`
+	Username           string `json:"username"`
+	Password           string `json:"password"`
+	Database           int    `json:"database"`
+	PoolSize           int    `json:"poolSize"`
+	MinIdleConns       int    `json:"minIdleConns"`
+	MaxRetries         int    `json:"maxRetries"`
+	ConnectTimeoutInMs int    `json:"connectTimeoutInMs"`
+	ReadTimeoutInMs    int    `json:"readTimeoutInMs"`
+	WriteTimeoutInMs   int    `json:"writeTimeoutInMs"`
+	TLSEnabled         bool   `json:"tlsEnabled"`
 }
 
 // Security contains security configuration

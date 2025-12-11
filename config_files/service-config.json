@@ -15,7 +15,7 @@
   },
   "database": {
     "username": "root",
-    "password": "rootpass",
+    "password": "",
     "host": "localhost",
     "port": 3306,
     "name": "infinity_service",
@@ -49,6 +49,21 @@
     "logLevel": 2,
     "stacktraceLevel": 4,
     "logFormat": "cglsdebug"
+  },
+  "valkey": {
+    "enabled": true,
+    "host": "localhost",
+    "port": 6379,
+    "username": "",
+    "password": "",
+    "database": 0,
+    "poolSize": 10,
+    "minIdleConns": 2,
+    "maxRetries": 3,
+    "connectTimeoutInMs": 5000,
+    "readTimeoutInMs": 3000,
+    "writeTimeoutInMs": 3000,
+    "tlsEnabled": false
   },
   "kafka": {
     "bootstrap.servers": "localhost:9092",
