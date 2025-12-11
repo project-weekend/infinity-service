@@ -1,5 +1,9 @@
 package model
 
+type GenericResponse struct {
+	Success bool `json:"success"`
+}
+
 type WebResponse[T any] struct {
 	Data   T             `json:"data"`
 	Paging *PageMetadata `json:"paging,omitempty"`

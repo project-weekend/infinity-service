@@ -11,7 +11,7 @@ func UserToResponse(user *entity.User) *model.UserResponse {
 		RoleID:    user.RoleID,
 		Name:      user.Name,
 		Email:     user.Email,
-		Status:    string(user.Status),
+		Status:    user.Status,
 		CreatedBy: user.CreatedBy,
 		CreatedAt: user.CreatedAt,
 		UpdatedAt: user.UpdatedAt,

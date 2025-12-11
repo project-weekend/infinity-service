@@ -11,6 +11,7 @@ func Serve() {
 	appConfig := config.LoadConfig()
 	logger := config.NewLogger(appConfig)
 	db := config.NewDatabase(appConfig, logger)
+	cache := config.NewCache(appConfig, logger)
 	validator := config.NewValidator()
 	appEngine := config.NewFiber(appConfig)
 
@@ -18,6 +19,7 @@ func Serve() {
 		Config:    appConfig,
 		Logger:    logger,
 		DB:        db,
+		Cache:     cache,
 		Validate:  validator,
 		AppEngine: appEngine,
 	})

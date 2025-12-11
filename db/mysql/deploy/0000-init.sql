@@ -48,6 +48,20 @@ CREATE TABLE IF NOT EXISTS `user_sessions` (
     UNIQUE KEY `uk_token` (`token`),
     INDEX `idx_user_id` (`user_id`),
     INDEX `idx_expires_at` (`expires_at`)
-) ENGINE = INNODB 
-DEFAULT CHARSET = utf8mb4 
+) ENGINE = INNODB
+DEFAULT CHARSET = utf8mb4
+COLLATE = utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `product_categories` (
+    `id`                BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+    `category_code`     VARCHAR(50) NOT NULL,
+    `name`              VARCHAR(50) NOT NULL,
+    `description`       VARCHAR(50) NOT NULL,
+    `created_at`        TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at`        TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_product_category_category_code` (`category_code`)
+) ENGINE = INNODB
+DEFAULT CHARSET = utf8mb4
 COLLATE = utf8mb4_unicode_ci;

@@ -6,9 +6,10 @@ import (
 )
 
 type RouteConfig struct {
-	AppEngine   *fiber.App
-	UserHandler *handler.UserHandler
-	Middleware  fiber.Handler
+	AppEngine              *fiber.App
+	UserHandler            *handler.UserHandler
+	ProductCategoryHandler *handler.ProductCategoryHandler
+	Middleware             fiber.Handler
 }
 
 func (r *RouteConfig) Setup() {
@@ -28,4 +29,7 @@ func (r *RouteConfig) RegisterProtectedRoutes() {
 	// Protected user routes
 	protected.Post("/user", r.UserHandler.Register)
 	protected.Post("/user/me", r.UserHandler.CurrentUser)
+
+	protected.Post("/product-category", r.ProductCategoryHandler.Create)
+	protected.Get("/product-categories", r.ProductCategoryHandler.List)
 }
