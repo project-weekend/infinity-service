@@ -12,8 +12,7 @@ const (
 type User struct {
 	ID        int       `gorm:"column:id;primaryKey"`
 	RoleID    int       `gorm:"column:role_id"`
-	UserID    string    `gorm:"column:user_id"`
-	Name      string    `gorm:"column:name"`
+	UserCode  string    `gorm:"column:user_code"`
 	Email     string    `gorm:"column:email"`
 	Status    string    `gorm:"column:status"`
 	Password  string    `gorm:"column:password"`

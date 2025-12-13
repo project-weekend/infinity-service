@@ -18,18 +18,18 @@ func NewCache(appCfg *config.Config, slogger *slog.Logger) valkey.Client {
 	slogger.Info("Initializing Valkey cache connection...")
 
 	// Extract configuration
-	host := appCfg.Valkey.Host
-	port := appCfg.Valkey.Port
-	username := appCfg.Valkey.Username
-	password := appCfg.Valkey.Password
-	database := appCfg.Valkey.Database
-	poolSize := appCfg.Valkey.PoolSize
-	minIdleConns := appCfg.Valkey.MinIdleConns
-	maxRetries := appCfg.Valkey.MaxRetries
-	connectTimeout := time.Duration(appCfg.Valkey.ConnectTimeoutInMs) * time.Millisecond
-	readTimeout := time.Duration(appCfg.Valkey.ReadTimeoutInMs) * time.Millisecond
-	writeTimeout := time.Duration(appCfg.Valkey.WriteTimeoutInMs) * time.Millisecond
-	tlsEnabled := appCfg.Valkey.TLSEnabled
+	host := appCfg.ValkeyConfig.Host
+	port := appCfg.ValkeyConfig.Port
+	username := appCfg.ValkeyConfig.Username
+	password := appCfg.ValkeyConfig.Password
+	database := appCfg.ValkeyConfig.Database
+	poolSize := appCfg.ValkeyConfig.PoolSize
+	minIdleConns := appCfg.ValkeyConfig.MinIdleConns
+	maxRetries := appCfg.ValkeyConfig.MaxRetries
+	connectTimeout := time.Duration(appCfg.ValkeyConfig.ConnectTimeoutInMs) * time.Millisecond
+	readTimeout := time.Duration(appCfg.ValkeyConfig.ReadTimeoutInMs) * time.Millisecond
+	writeTimeout := time.Duration(appCfg.ValkeyConfig.WriteTimeoutInMs) * time.Millisecond
+	tlsEnabled := appCfg.ValkeyConfig.TLSEnabled
 
 	// Build address
 	address := fmt.Sprintf("%s:%d", host, port)

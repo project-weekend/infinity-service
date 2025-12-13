@@ -14,7 +14,7 @@ const (
 
 type Order struct {
 	ID          int             `gorm:"column:id;primaryKey"`
-	OrderIID    int             `gorm:"column:order_iid"`
+	OrderCode   string          `gorm:"column:order_code"`
 	Amount      decimal.Decimal `gorm:"column:amount"`
 	Products    json.RawMessage `gorm:"column:items"`
 	Fulfillment string          `gorm:"column:fulfillment"`

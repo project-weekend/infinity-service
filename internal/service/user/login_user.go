@@ -19,7 +19,7 @@ func (u *UserServiceImpl) Login(ctx context.Context, request *model.LoginRequest
 	u.Logger.InfoContext(ctx, "user initiate login")
 
 	user := new(entity.User)
-	if err := u.UserRepository.FindByEmail(tx, user, request.Email); err != nil {
+	if err := u.UserRepository.FindByEmail(ctx, tx, user, request.Email); err != nil {
 		u.Logger.InfoContext(ctx, "check email", "email", user.Email)
 		if err == gorm.ErrRecordNotFound {
 			u.Logger.WarnContext(ctx, "User not found", "email", request.Email)
@@ -46,12 +46,11 @@ func (u *UserServiceImpl) Login(ctx context.Context, request *model.LoginRequest
 		return nil, common.NewServiceError(common.ErrCode_InternalServerError, nil)
 	}
 
-	sessionID := uuid.New().String()
 	session := &entity.UserSession{
-		SessionID: sessionID,
-		UserID:    user.UserID,
-		Token:     hashedToken,
-		ExpiresAt: time.Now().Add(24 * time.Hour),
+		SessionCode: uuid.New().String(),
+		UserID:      user.ID,
+		Token:       hashedToken,
+		ExpiresAt:   time.Now().Add(24 * time.Hour),
 	}
 
 	if err := u.SessionRepository.CreateSession(tx, session); err != nil {

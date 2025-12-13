@@ -9,6 +9,7 @@ type RouteConfig struct {
 	AppEngine              *fiber.App
 	UserHandler            *handler.UserHandler
 	ProductCategoryHandler *handler.ProductCategoryHandler
+	ProductHandler         *handler.ProductHandler
 	Middleware             fiber.Handler
 }
 
@@ -20,8 +21,6 @@ func (r *RouteConfig) Setup() {
 func (r *RouteConfig) RegisterRoutes() {
 	// Public routes (no authentication required)
 	r.AppEngine.Post("/api/v1/user/login", r.UserHandler.Login)
-	r.AppEngine.Post("/api/v1/product-category/:id", r.ProductCategoryHandler.Get)
-	r.AppEngine.Delete("/api/v1/product-category/:id", r.ProductCategoryHandler.Delete)
 }
 
 func (r *RouteConfig) RegisterProtectedRoutes() {
@@ -32,7 +31,15 @@ func (r *RouteConfig) RegisterProtectedRoutes() {
 	protected.Post("/user", r.UserHandler.Register)
 	protected.Post("/user/me", r.UserHandler.CurrentUser)
 
+	// Product category routes
 	protected.Post("/product-category", r.ProductCategoryHandler.Create)
 	protected.Get("/product-categories", r.ProductCategoryHandler.List)
-	//protected.DeleteByID("/product-category/:id", r.ProductCategoryHandler.Get)
+	protected.Post("/product-category/:id", r.ProductCategoryHandler.Get)
+	protected.Delete("/product-category/:id", r.ProductCategoryHandler.Delete)
+
+	// Product routes
+	protected.Post("/product", r.ProductHandler.Create)
+	protected.Get("/products", r.ProductHandler.List)
+	protected.Get("/product/:id", r.ProductHandler.Get)
+	protected.Delete("/product/:id", r.ProductHandler.Delete)
 }

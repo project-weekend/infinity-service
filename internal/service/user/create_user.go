@@ -24,7 +24,7 @@ func (u *UserServiceImpl) Create(ctx context.Context, request *model.CreateUserR
 
 	currentUserID := auth.ID
 	loggedInUser := new(entity.User)
-	if err := u.UserRepository.FindByID(tx, loggedInUser, currentUserID); err != nil {
+	if err := u.UserRepository.FindByID(ctx, tx, loggedInUser, currentUserID); err != nil {
 		u.Logger.WarnContext(ctx, "Failed find user by id", "err", err)
 		return nil, common.NewServiceError(common.ErrCode_InternalServerError, nil)
 	}
@@ -39,7 +39,7 @@ func (u *UserServiceImpl) Create(ctx context.Context, request *model.CreateUserR
 		})
 	}
 
-	total, err := u.UserRepository.CountByEmail(tx, request.Email)
+	total, err := u.UserRepository.CountByEmail(ctx, tx, request.Email)
 	if err != nil {
 		u.Logger.WarnContext(ctx, "Failed count user by email", "err", err)
 		return nil, common.NewServiceError(common.ErrCode_InternalServerError, nil)
@@ -56,17 +56,16 @@ func (u *UserServiceImpl) Create(ctx context.Context, request *model.CreateUserR
 	}
 
 	user := &entity.User{
-		Name:      request.Name,
 		Email:     request.Email,
 		RoleID:    request.RoleID,
-		UserID:    uuid.New().String(),
+		UserCode:  uuid.New().String(),
 		Status:    string(entity.UserStatus_Active),
 		Password:  string(password),
 		CreatedBy: currentUserID,
 	}
 
-	if err := u.UserRepository.Create(tx, user); err != nil {
-		u.Logger.WarnContext(ctx, "Failed create user", "err", err)
+	if err := u.UserRepository.Save(ctx, tx, user); err != nil {
+		u.Logger.WarnContext(ctx, "Failed save user", "err", err)
 		return nil, common.NewServiceError(common.ErrCode_InternalServerError, nil)
 	}
 

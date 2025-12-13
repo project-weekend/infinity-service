@@ -13,7 +13,7 @@ type ProductCategoryResponse struct {
 
 type CreateProductCategoryRequest struct {
 	Name        string `json:"name" validate:"required,max=100"`
-	Description string `json:"description" validate:"required,max=250"`
+	Description string `json:"description" validate:"max=250"`
 }
 
 type GetProductCategoryRequest struct {

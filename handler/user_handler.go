@@ -71,6 +71,8 @@ func (i *UserHandler) CurrentUser(ctx *fiber.Ctx) error {
 		return fiber.ErrUnauthorized
 	}
 
+	i.Logger.InfoContext(ctx.UserContext(), "Current user", "user_id", auth.ID)
+
 	response, err := i.UserService.CurrentUser(ctx.UserContext(), auth.ID)
 	if err != nil {
 		i.Logger.ErrorContext(ctx.UserContext(), "Failed get current user", "err", err)

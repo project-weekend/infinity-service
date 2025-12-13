@@ -2,180 +2,93 @@ package cache
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
-	"strconv"
-	"time"
-
-	"github.com/valkey-io/valkey-go"
-	"gorm.io/gorm"
 
 	"github.com/infinity/infinity-service/internal/entity"
 	"github.com/infinity/infinity-service/internal/repository"
-	"github.com/infinity/infinity-service/internal/repository/db"
+	"github.com/infinity/infinity-service/server/config"
+	"github.com/valkey-io/valkey-go"
+	"gorm.io/gorm"
 )
 
 const (
-	cacheKeyProductCategory_All            = "product-category-repository:all"
-	cacheKeyProductCategory_ByCategoryCode = "product-category-repository:code:%s"
-	cacheKeyProductCategory_ByID           = "product-category-repository:id:%s"
-	cacheTTL                               = 15 * time.Minute
+	cacheKeyProductCategory_All  = "product-category:all"
+	cacheKeyProductCategory_ByID = "product-category:id:%s"
 )
 
 type CacheProductCategoryRepository struct {
-	Logger          *slog.Logger
-	Cache           valkey.Client
+	AppConfig       *config.Config
+	Cache           *Cache[entity.ProductCategory]
 	InnerRepository repository.ProductCategoryRepository
 }
 
-func NewCacheProductCategoryRepository(logger *slog.Logger, cache valkey.Client, innerRepository *db.MySqlProductCategoryRepository) CacheProductCategoryRepository {
-	return CacheProductCategoryRepository{
-		Logger:          logger,
-		Cache:           cache,
+func NewCacheProductCategoryRepository(logger *slog.Logger, appConfig *config.Config, client valkey.Client, innerRepository repository.ProductCategoryRepository) *CacheProductCategoryRepository {
+	return &CacheProductCategoryRepository{
+		AppConfig:       appConfig,
+		Cache:           NewCache[entity.ProductCategory](logger, client),
 		InnerRepository: innerRepository,
 	}
 }
 
-func (r *CacheProductCategoryRepository) Save(ctx context.Context, db *gorm.DB, entity *entity.ProductCategory) error {
-	// First, save to database via inner repository
-	if err := r.InnerRepository.Save(ctx, db, entity); err != nil {
+func (r *CacheProductCategoryRepository) Create(ctx context.Context, db *gorm.DB, entity *entity.ProductCategory) error {
+	if err := r.InnerRepository.Create(ctx, db, entity); err != nil {
 		return err
 	}
-
-	// Then, invalidate relevant caches
-	helper := NewCacheHelper(r.Cache, r.Logger)
-	cacheKeys := []string{
-		cacheKeyProductCategory_All,
-		fmt.Sprintf(cacheKeyProductCategory_ByCategoryCode, entity.CategoryCode),
-	}
-
-	// If entity has an ID, also invalidate the FindByID cache
-	if entity.ID > 0 {
-		cacheKeys = append(cacheKeys, fmt.Sprintf(cacheKeyProductCategory_ByID, strconv.Itoa(entity.ID)))
-	}
-
-	r.Logger.InfoContext(ctx, "Save: Invalidating caches", "keys", cacheKeys)
-
-	for _, key := range cacheKeys {
-		// Ignore cache delete errors to not fail the operation
-		if err := helper.Delete(ctx, key); err != nil {
-			r.Logger.WarnContext(ctx, "Save: Failed to delete cache key", "key", key, "error", err)
-		}
-	}
-
+	// Invalidate list cache after create
+	r.Cache.TryDeleteCache(ctx, cacheKeyProductCategory_All)
 	return nil
 }
 
-func (r *CacheProductCategoryRepository) CountByCategoryCode(ctx context.Context, categoryCode string) (int64, error) {
-	helper := NewCacheHelper(r.Cache, r.Logger)
-	cacheKey := fmt.Sprintf(cacheKeyProductCategory_ByCategoryCode, categoryCode)
-
-	cachedValue, err := helper.Get(ctx, cacheKey)
-	if err == nil && cachedValue != "" {
-		count, parseErr := strconv.ParseInt(cachedValue, 10, 64)
-		if parseErr == nil {
-			return count, nil
-		}
+func (r *CacheProductCategoryRepository) Delete(ctx context.Context, db *gorm.DB, entity *entity.ProductCategory) error {
+	if err := r.InnerRepository.Delete(ctx, db, entity); err != nil {
+		return err
 	}
-
-	count, err := r.InnerRepository.CountByCategoryCode(ctx, categoryCode)
-	if err != nil {
-		return 0, err
-	}
-
-	_ = helper.Set(ctx, cacheKey, strconv.FormatInt(count, 10), cacheTTL)
-
-	return count, nil
+	// Invalidate caches after delete
+	r.Cache.TryDeleteCache(ctx,
+		cacheKeyProductCategory_All,
+		fmt.Sprintf(cacheKeyProductCategory_ByID, fmt.Sprint(entity.ID)),
+	)
+	return nil
 }
 
-func (r *CacheProductCategoryRepository) FindByID(ctx context.Context, id string) (*entity.ProductCategory, error) {
-	helper := NewCacheHelper(r.Cache, r.Logger)
+func (r *CacheProductCategoryRepository) CountByCategoryCode(ctx context.Context, db *gorm.DB, categoryCode string) (int64, error) {
+	// No caching for count - delegate directly
+	return r.InnerRepository.CountByCategoryCode(ctx, db, categoryCode)
+}
+
+func (r *CacheProductCategoryRepository) FindAll(ctx context.Context, db *gorm.DB) ([]entity.ProductCategory, error) {
+	// Try load from cache
+	if cached := r.Cache.TryLoadCache(ctx, cacheKeyProductCategory_All); cached != nil {
+		return cached, nil
+	}
+
+	// Cache miss - fetch from DB
+	entities, err := r.InnerRepository.FindAll(ctx, db)
+	if err != nil {
+		return nil, err
+	}
+
+	// Save to cache
+	r.Cache.TrySaveCache(ctx, cacheKeyProductCategory_All, r.AppConfig.ValkeyConfig.TTLInMinutes, entities)
+	return entities, nil
+}
+
+func (r *CacheProductCategoryRepository) FindByID(ctx context.Context, db *gorm.DB, category *entity.ProductCategory, id string) error {
 	cacheKey := fmt.Sprintf(cacheKeyProductCategory_ByID, id)
 
-	r.Logger.InfoContext(ctx, "FindByID: Attempting to get from cache", "key", cacheKey, "id", id)
-
-	// Try to get from cache
-	cachedValue, err := helper.Get(ctx, cacheKey)
-	if err == nil && cachedValue != "" {
-		r.Logger.InfoContext(ctx, "FindByID: Cache HIT", "key", cacheKey, "id", id)
-		var category entity.ProductCategory
-		if unmarshalErr := json.Unmarshal([]byte(cachedValue), &category); unmarshalErr == nil {
-			r.Logger.DebugContext(ctx, "FindByID: Successfully unmarshaled from cache", "id", id)
-			return &category, nil
-		} else {
-			r.Logger.WarnContext(ctx, "FindByID: Failed to unmarshal cached data", "error", unmarshalErr)
-		}
-	} else {
-		r.Logger.InfoContext(ctx, "FindByID: Cache MISS", "key", cacheKey, "id", id, "error", err)
+	// Try load from cache
+	if cached := r.Cache.TryLoadCache(ctx, cacheKey); len(cached) > 0 {
+		*category = cached[0]
+		return nil
 	}
 
-	// Cache miss or error, get from database
-	r.Logger.DebugContext(ctx, "FindByID: Fetching from database", "id", id)
-	category, err := r.InnerRepository.FindByID(ctx, id)
-	if err != nil {
-		r.Logger.ErrorContext(ctx, "FindByID: Database query failed", "error", err, "id", id)
-		return nil, err
+	// Cache miss - fetch from DB
+	if err := r.InnerRepository.FindByID(ctx, db, category, id); err != nil {
+		return err
 	}
 
-	r.Logger.InfoContext(ctx, "FindByID: Retrieved from database", "id", id)
-
-	// Store in cache
-	if jsonData, marshalErr := json.Marshal(category); marshalErr == nil {
-		r.Logger.InfoContext(ctx, "FindByID: Storing in cache", "key", cacheKey, "id", id)
-		if setErr := helper.Set(ctx, cacheKey, string(jsonData), cacheTTL); setErr != nil {
-			r.Logger.ErrorContext(ctx, "FindByID: Failed to store in cache", "error", setErr)
-		} else {
-			r.Logger.DebugContext(ctx, "FindByID: Successfully stored in cache", "id", id, "ttl", cacheTTL)
-		}
-	} else {
-		r.Logger.ErrorContext(ctx, "FindByID: Failed to marshal category", "error", marshalErr)
-	}
-
-	return category, nil
-}
-
-func (r *CacheProductCategoryRepository) FindAll(ctx context.Context) ([]entity.ProductCategory, error) {
-	helper := NewCacheHelper(r.Cache, r.Logger)
-	cacheKey := cacheKeyProductCategory_All
-
-	r.Logger.InfoContext(ctx, "FindAll: Attempting to get from cache", "key", cacheKey)
-
-	// Try to get from cache
-	cachedValue, err := helper.Get(ctx, cacheKey)
-	if err == nil && cachedValue != "" {
-		r.Logger.InfoContext(ctx, "FindAll: Cache HIT", "key", cacheKey, "valueLength", len(cachedValue))
-		var categories []entity.ProductCategory
-		if unmarshalErr := json.Unmarshal([]byte(cachedValue), &categories); unmarshalErr == nil {
-			r.Logger.DebugContext(ctx, "FindAll: Successfully unmarshaled from cache", "count", len(categories))
-			return categories, nil
-		} else {
-			r.Logger.WarnContext(ctx, "FindAll: Failed to unmarshal cached data", "error", unmarshalErr)
-		}
-	} else {
-		r.Logger.InfoContext(ctx, "FindAll: Cache MISS", "key", cacheKey, "error", err)
-	}
-
-	r.Logger.DebugContext(ctx, "FindAll: Fetching from database")
-
-	categories, err := r.InnerRepository.FindAll(ctx)
-	if err != nil {
-		r.Logger.ErrorContext(ctx, "FindAll: Database query failed", "error", err)
-		return nil, err
-	}
-
-	r.Logger.InfoContext(ctx, "FindAll: Retrieved from database", "count", len(categories))
-
-	if jsonData, marshalErr := json.Marshal(categories); marshalErr == nil {
-		r.Logger.InfoContext(ctx, "FindAll: Storing in cache", "key", cacheKey, "dataLength", len(jsonData))
-		if setErr := helper.Set(ctx, cacheKey, string(jsonData), cacheTTL); setErr != nil {
-			r.Logger.ErrorContext(ctx, "FindAll: Failed to store in cache", "error", setErr)
-		} else {
-			r.Logger.DebugContext(ctx, "FindAll: Successfully stored in cache", "ttl", cacheTTL)
-		}
-	} else {
-		r.Logger.ErrorContext(ctx, "FindAll: Failed to marshal categories", "error", marshalErr)
-	}
-
-	return categories, nil
+	// Save to cache (wrap single entity in slice for generic cache)
+	r.Cache.TrySaveCache(ctx, cacheKey, r.AppConfig.ValkeyConfig.TTLInMinutes, []entity.ProductCategory{*category})
+	return nil
 }
