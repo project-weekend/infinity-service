@@ -15,7 +15,7 @@
   },
   "database": {
     "username": "root",
-    "password": "",
+    "password": "rootpass",
     "host": "localhost",
     "port": 3306,
     "name": "infinity_service",
@@ -24,15 +24,6 @@
       "max": 100,
       "lifetime": 300
     }
-  },
-  "redisConfig": {
-    "addr": "localhost:6379",
-    "idleTimeoutInSec": 60,
-    "poolSize": 500,
-    "readOnlyFromSlaves": false,
-    "readTimeoutInSec": 1,
-    "writeTimeoutInSec": 1,
-    "tlsEnabled": false
   },
   "statsd": {
     "host": "localhost",
@@ -50,10 +41,10 @@
     "stacktraceLevel": 4,
     "logFormat": "cglsdebug"
   },
-  "valkey": {
+  "valkeyConfig": {
     "enabled": true,
     "host": "localhost",
-    "port": 6379,
+    "port": 6380,
     "username": "",
     "password": "",
     "database": 0,
@@ -63,7 +54,8 @@
     "connectTimeoutInMs": 5000,
     "readTimeoutInMs": 3000,
     "writeTimeoutInMs": 3000,
-    "tlsEnabled": false
+    "tlsEnabled": false,
+    "ttlInMinutes": 15
   },
   "kafka": {
     "bootstrap.servers": "localhost:9092",

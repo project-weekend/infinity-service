@@ -7,9 +7,8 @@ import (
 
 func UserToResponse(user *entity.User) *model.UserResponse {
 	return &model.UserResponse{
-		UserID:    user.UserID,
+		UserCode:  user.UserCode,
 		RoleID:    user.RoleID,
-		Name:      user.Name,
 		Email:     user.Email,
 		Status:    user.Status,
 		CreatedBy: user.CreatedBy,
@@ -20,8 +19,7 @@ func UserToResponse(user *entity.User) *model.UserResponse {
 
 func UserToLoginResponse(user *entity.User, token string) *model.LoginResponse {
 	return &model.LoginResponse{
-		UserID: user.UserID,
-		Name:   user.Name,
+		UserID: user.ID,
 		Email:  user.Email,
 		Token:  token,
 	}

@@ -5,8 +5,7 @@ import "time"
 type UserResponse struct {
 	ID        int       `json:"id,omitempty"`
 	RoleID    int       `json:"role_id,omitempty"`
-	UserID    string    `json:"user_id,omitempty"`
-	Name      string    `json:"name,omitempty"`
+	UserCode  string    `json:"user_code,omitempty"`
 	Email     string    `json:"email,omitempty"`
 	Status    string    `json:"status,omitempty"`
 	CreatedBy string    `json:"created_by,omitempty"`
@@ -15,7 +14,6 @@ type UserResponse struct {
 }
 
 type CreateUserRequest struct {
-	Name     string `json:"name" validate:"required,max=100"`
 	Email    string `json:"email" validate:"required,max=100"`
 	RoleID   int    `json:"role_id" validate:"required,max=10"`
 	Password string `json:"password" validate:"required,max=100"`
@@ -31,9 +29,8 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
+	UserID int    `json:"user_id,omitempty"`
 	Token  string `json:"token,omitempty"`
-	UserID string `json:"user_id,omitempty"`
-	Name   string `json:"name,omitempty"`
 	Email  string `json:"email,omitempty"`
 }
 

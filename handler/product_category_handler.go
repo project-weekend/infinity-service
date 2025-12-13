@@ -7,6 +7,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/infinity/infinity-service/server/middleware"
 
+	"github.com/infinity/infinity-service/internal/common"
 	"github.com/infinity/infinity-service/internal/model"
 	"github.com/infinity/infinity-service/internal/service"
 )
@@ -50,7 +51,7 @@ func (i *ProductCategoryHandler) List(ctx *fiber.Ctx) error {
 	responses, err := i.ProductCategoryService.List(ctx.UserContext())
 	if err != nil {
 		i.Logger.ErrorContext(ctx.UserContext(), "Failed to get product category list", "err", err)
-		return err
+		return common.AsServiceError(err)
 	}
 
 	return ctx.JSON(model.WebResponse[[]model.ProductCategoryResponse]{Data: responses})
@@ -65,7 +66,7 @@ func (i *ProductCategoryHandler) Get(ctx *fiber.Ctx) error {
 	responses, err := i.ProductCategoryService.Get(ctx.UserContext(), request)
 	if err != nil {
 		i.Logger.ErrorContext(ctx.UserContext(), "Failed to get product category details", "err", err)
-		return err
+		return common.AsServiceError(err)
 	}
 
 	return ctx.JSON(model.WebResponse[*model.ProductCategoryResponse]{Data: responses})
@@ -82,8 +83,8 @@ func (i *ProductCategoryHandler) Delete(ctx *fiber.Ctx) error {
 	err := i.ProductCategoryService.Delete(ctx.UserContext(), request)
 	if err != nil {
 		i.Logger.ErrorContext(ctx.UserContext(), "Failed to get product category details", "err", err)
-		return err
+		return common.AsServiceError(err)
 	}
 
-	return ctx.JSON(model.WebResponse[*model.GenericResponse]{Data: nil})
+	return ctx.JSON(model.WebResponse[*model.GenericResponse]{Data: &model.GenericResponse{Success: true}})
 }

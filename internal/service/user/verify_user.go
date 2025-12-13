@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/infinity/infinity-service/internal/entity"
@@ -23,7 +24,7 @@ func (u *UserServiceImpl) Verify(ctx context.Context, request *model.VerifyUserR
 	}
 
 	if session.IsExpired() {
-		u.Logger.WarnContext(ctx, "Session expired", "session_id", session.SessionID)
+		u.Logger.WarnContext(ctx, "Session expired", "session_id", session.SessionCode)
 		return nil, fiber.ErrForbidden
 	}
 
@@ -32,5 +33,5 @@ func (u *UserServiceImpl) Verify(ctx context.Context, request *model.VerifyUserR
 		return nil, fiber.ErrInternalServerError
 	}
 
-	return &model.Auth{ID: session.UserID}, nil
+	return &model.Auth{ID: fmt.Sprintf("%d", session.UserID)}, nil
 }

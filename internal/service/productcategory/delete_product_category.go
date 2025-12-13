@@ -8,25 +8,25 @@ import (
 	"github.com/infinity/infinity-service/internal/model"
 )
 
-func (p *ProductCategoryServiceImpl) DeleteProductCategory(ctx context.Context, request *model.DeleteProductCategoryRequest) (*model.GenericResponse, error) {
+func (p *ProductCategoryServiceImpl) Delete(ctx context.Context, request *model.DeleteProductCategoryRequest) error {
 	tx := p.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	user := new(entity.User)
-	if err := p.UserRepository.FindByID(tx, user, request.UserID); err != nil {
-		p.Logger.ErrorContext(ctx, "failed to find user by id", err)
-		return nil, common.NewServiceError(common.ErrCode_InternalServerError, nil)
+	category := new(entity.ProductCategory)
+	if err := p.ProductCategoryRepository.FindByID(ctx, p.DB, category, request.ID); err != nil {
+		p.Logger.ErrorContext(ctx, "failed to find product category by id", "error", err)
+		return common.NewServiceError(common.ErrCode_ResourceNotFound, nil)
 	}
 
-	if entity.Role(user.Role.Name) != entity.Role_Admin {
-		p.Logger.WarnContext(ctx, "User is not admin", "user", user.ID)
-		return nil, common.NewServiceError(common.ErrCode_Forbidden, nil)
+	if err := p.ProductCategoryRepository.Delete(ctx, p.DB, category); err != nil {
+		p.Logger.ErrorContext(ctx, "failed to delete product category", "error", err)
+		return common.NewServiceError(common.ErrCode_InternalServerError, nil)
 	}
 
-	if err := p.ProductCategoryRepository.DeleteByID(ctx, request.ID); err != nil {
-		p.Logger.ErrorContext(ctx, "failed to delete product category by id", err)
-		return nil, common.NewServiceError(common.ErrCode_InternalServerError, nil)
+	if err := tx.Commit().Error; err != nil {
+		p.Logger.ErrorContext(ctx, "transaction commit error", "error", err)
+		return common.NewServiceError(common.ErrCode_InternalServerError, nil)
 	}
-	
-	return &model.GenericResponse{Success: true}, nil
+
+	return nil
 }

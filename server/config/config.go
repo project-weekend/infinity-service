@@ -2,21 +2,20 @@ package config
 
 // Config is the main configuration structure for qms-engine usecase
 type Config struct {
-	Name        string      `json:"name"`
-	Prefork     bool        `json:"prefork"`
-	ServiceName string      `json:"serviceName"`
-	Env         string      `json:"env"`
-	Host        string      `json:"host"`
-	Port        int         `json:"port"`
-	OwnerInfo   OwnerInfo   `json:"ownerInfo"`
-	Database    Database    `json:"database"`
-	RedisConfig RedisConfig `json:"redisConfig"`
-	Statsd      Statsd      `json:"statsd"`
-	Trace       Trace       `json:"trace"`
-	Logger      Logger      `json:"logger"`
-	Valkey      Valkey      `json:"valkey"`
-	Kafka       KafkaConfig `json:"kafka"`
-	Security    Security    `json:"security"`
+	Name         string       `json:"name"`
+	Prefork      bool         `json:"prefork"`
+	ServiceName  string       `json:"serviceName"`
+	Env          string       `json:"env"`
+	Host         string       `json:"host"`
+	Port         int          `json:"port"`
+	OwnerInfo    OwnerInfo    `json:"ownerInfo"`
+	Database     Database     `json:"database"`
+	Statsd       Statsd       `json:"statsd"`
+	Trace        Trace        `json:"trace"`
+	Logger       Logger       `json:"logger"`
+	ValkeyConfig ValkeyConfig `json:"valkeyConfig"`
+	Kafka        KafkaConfig  `json:"kafka"`
+	Security     Security     `json:"security"`
 }
 
 // OwnerInfo contains information about the usecase owner
@@ -44,17 +43,6 @@ type CircuitBreaker struct {
 	TimeoutInMs            int `json:"timeoutInMs"`
 	MaxConcurrentReq       int `json:"maxConcurrentReq"`
 	VolumePercentThreshold int `json:"volumePercentThreshold"`
-}
-
-// RedisConfig contains Redis configuration
-type RedisConfig struct {
-	Addr               string `json:"addr"`
-	IdleTimeoutInSec   int    `json:"idleTimeoutInSec"`
-	PoolSize           int    `json:"poolSize"`
-	ReadOnlyFromSlaves bool   `json:"readOnlyFromSlaves"`
-	ReadTimeoutInSec   int    `json:"readTimeoutInSec"`
-	WriteTimeoutInSec  int    `json:"writeTimeoutInSec"`
-	TLSEnabled         bool   `json:"tlsEnabled"`
 }
 
 // Statsd contains StatsD configuration
@@ -88,7 +76,7 @@ type KafkaConfig struct {
 }
 
 // Valkey contains Valkey cache configuration
-type Valkey struct {
+type ValkeyConfig struct {
 	Enabled            bool   `json:"enabled"`
 	Host               string `json:"host"`
 	Port               int    `json:"port"`
@@ -102,6 +90,7 @@ type Valkey struct {
 	ReadTimeoutInMs    int    `json:"readTimeoutInMs"`
 	WriteTimeoutInMs   int    `json:"writeTimeoutInMs"`
 	TLSEnabled         bool   `json:"tlsEnabled"`
+	TTLInMinutes       int    `json:"ttlInMinutes"`
 }
 
 // Security contains security configuration

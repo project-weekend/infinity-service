@@ -13,6 +13,7 @@ import (
 	"github.com/infinity/infinity-service/internal/repository"
 	"github.com/infinity/infinity-service/internal/repository/cache"
 	"github.com/infinity/infinity-service/internal/repository/db"
+	"github.com/infinity/infinity-service/internal/service/product"
 	"github.com/infinity/infinity-service/internal/service/productcategory"
 	"github.com/infinity/infinity-service/internal/service/user"
 	"github.com/infinity/infinity-service/server/config"
@@ -36,13 +37,13 @@ func Bootstrap(app *AppBootstrap) {
 	// setup mysql repository
 	userRepository := db.NewUserRepository(app.Logger)
 	sessionRepository := db.NewSessionRepository(app.Logger)
-	mySqlProductCategoryRepository := db.NewMySqlProductCategoryRepository(app.Logger, app.DB)
+	mySqlProductCategoryRepository := db.NewMySqlProductCategoryRepository(app.Logger)
+	productRepository := db.NewMySqlProductRepository(app.Logger)
 
 	// setup product category repository with optional caching
 	var productCategoryRepository repository.ProductCategoryRepository
-	if app.Config.Valkey.Enabled {
-		valkeyRepo := cache.NewCacheProductCategoryRepository(app.Logger, app.Cache, mySqlProductCategoryRepository)
-		productCategoryRepository = &valkeyRepo
+	if app.Config.ValkeyConfig.Enabled {
+		productCategoryRepository = cache.NewCacheProductCategoryRepository(app.Logger, app.Config, app.Cache, mySqlProductCategoryRepository)
 	} else {
 		productCategoryRepository = mySqlProductCategoryRepository
 	}
@@ -50,10 +51,12 @@ func Bootstrap(app *AppBootstrap) {
 	// setup service
 	userService := user.NewUserService(app.Config, app.Logger, app.DB, userRepository, sessionRepository)
 	productCategoryService := productcategory.NewProductCategoryService(app.Config, app.Logger, app.DB, productCategoryRepository)
+	productService := product.NewProductService(app.Config, app.Logger, app.DB, userRepository, productRepository, productCategoryRepository)
 
 	// setup handler
 	userHandler := handler.NewUserHandler(app.Logger, app.Validate, userService)
 	productCategoryHandler := handler.NewProductCategoryHandler(app.Logger, app.Validate, productCategoryService)
+	productHandler := handler.NewProductHandler(app.Logger, app.Validate, productService)
 
 	// setup middleware
 	authMiddleware := middleware.NewAuth(userService)
@@ -62,6 +65,7 @@ func Bootstrap(app *AppBootstrap) {
 		AppEngine:              app.AppEngine,
 		UserHandler:            userHandler,
 		ProductCategoryHandler: productCategoryHandler,
+		ProductHandler:         productHandler,
 		Middleware:             authMiddleware,
 	}
 

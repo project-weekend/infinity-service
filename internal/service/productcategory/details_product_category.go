@@ -3,7 +3,8 @@ package productcategory
 import (
 	"context"
 
-	"github.com/gofiber/fiber/v2"
+	"github.com/infinity/infinity-service/internal/common"
+	"github.com/infinity/infinity-service/internal/entity"
 	"github.com/infinity/infinity-service/internal/model"
 	"github.com/infinity/infinity-service/internal/model/converter"
 )
@@ -12,15 +13,16 @@ func (p *ProductCategoryServiceImpl) Get(ctx context.Context, request *model.Get
 	tx := p.DB.WithContext(ctx).Begin()
 	defer tx.Rollback()
 
-	productCategories, err := p.ProductCategoryRepository.FindByID(ctx, request.ID)
-	if err != nil {
-		return nil, err
+	category := new(entity.ProductCategory)
+	if err := p.ProductCategoryRepository.FindByID(ctx, tx, category, request.ID); err != nil {
+		p.Logger.ErrorContext(ctx, "failed to find product category by id", "error", err)
+		return nil, common.NewServiceError(common.ErrCode_ResourceNotFound, nil)
 	}
 
 	if err := tx.Commit().Error; err != nil {
-		p.Logger.ErrorContext(ctx, "transaction commit error", err)
-		return nil, fiber.ErrInternalServerError
+		p.Logger.ErrorContext(ctx, "transaction commit error", "error", err)
+		return nil, common.NewServiceError(common.ErrCode_InternalServerError, nil)
 	}
 
-	return converter.ProductCategoryToResponse(productCategories), nil
+	return converter.ProductCategoryToResponse(category), nil
 }

@@ -3,9 +3,11 @@ package productcategory
 import (
 	"context"
 	"strings"
+	"time"
 
 	"github.com/google/uuid"
 
+	"github.com/infinity/infinity-service/internal/common"
 	"github.com/infinity/infinity-service/internal/entity"
 	"github.com/infinity/infinity-service/internal/model"
 )
@@ -15,27 +17,34 @@ func (p *ProductCategoryServiceImpl) Create(ctx context.Context, request *model.
 	defer tx.Rollback()
 
 	categoryCode := generateProductCategoryCode(request.Name)
-	total, err := p.ProductCategoryRepository.CountByCategoryCode(ctx, categoryCode)
+	total, err := p.ProductCategoryRepository.CountByCategoryCode(ctx, tx, categoryCode)
 	if err != nil {
-		return nil, err
+		p.Logger.ErrorContext(ctx, "failed to count product category by code", "error", err)
+		return nil, common.NewServiceError(common.ErrCode_InternalServerError, nil)
 	}
 
 	// regenerate category code if it already exists
 	if total > 0 {
+		p.Logger.WarnContext(ctx, "product category code already exists", "categoryCode", categoryCode)
 		categoryCode = generateProductCategoryCode(request.Name)
 	}
 
 	productCategory := &entity.ProductCategory{
-		CategoryCode: generateProductCategoryCode(request.Name),
+		CategoryCode: categoryCode,
 		Name:         request.Name,
 		Description:  request.Description,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 	}
 
-	if err := p.ProductCategoryRepository.Save(ctx, productCategory); err != nil {
-		return nil, err
+	if err := p.ProductCategoryRepository.Create(ctx, tx, productCategory); err != nil {
+		p.Logger.ErrorContext(ctx, "failed to create product category", "error", err)
+		return nil, common.NewServiceError(common.ErrCode_InternalServerError, nil)
 	}
+
 	if err := tx.Commit().Error; err != nil {
-		return nil, err
+		p.Logger.ErrorContext(ctx, "transaction commit error", "error", err)
+		return nil, common.NewServiceError(common.ErrCode_InternalServerError, nil)
 	}
 
 	return &model.GenericResponse{
